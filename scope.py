@@ -1,23 +1,36 @@
 import requests
 
 
-def scale(name):
+def scale(*name):
     geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
+    x_up = 0
+    y_up = 0
 
-    geocoder_params = {
-        "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
-        "geocode": name,
-        "format": "json"}
+    x_low = 10000000000000
+    y_low = 10000000000000
 
-    response = requests.get(geocoder_api_server, params=geocoder_params)
+    for i in name:
+        geocoder_params = {
+            "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
+            "geocode": i,
+            "format": "json"}
 
-    if not response:
-        pass
+        response = requests.get(geocoder_api_server, params=geocoder_params)
 
-    json_response = response.json()
+        if not response:
+            pass
 
-    coords = json_response["response"]["GeoObjectCollection"][
-        "featureMember"][0]["GeoObject"]['boundedBy']['Envelope']
+        json_response = response.json()
+        coords = json_response["response"]["GeoObjectCollection"][
+            "featureMember"][0]["GeoObject"]['boundedBy']['Envelope']
 
-    return [str(float(coords['upperCorner'].split(' ')[0]) - float(coords['lowerCorner'].split(' ')[0])),
-            str(float(coords['upperCorner'].split(' ')[1]) - float(coords['lowerCorner'].split(' ')[1]))]
+        if float(coords['upperCorner'].split(' ')[0]) > x_up:
+            x_up = float(coords['upperCorner'].split(' ')[0])
+        if float(coords['upperCorner'].split(' ')[1]) > y_up:
+            y_up = float(coords['upperCorner'].split(' ')[1])
+        if float(coords['lowerCorner'].split(' ')[0]) < x_low:
+            x_low = float(coords['lowerCorner'].split(' ')[0])
+        if float(coords['lowerCorner'].split(' ')[1]) < y_low:
+            y_low = float(coords['lowerCorner'].split(' ')[1])
+
+    return [str((x_up - x_low) * 2), str((y_up - y_low) * 2)]
