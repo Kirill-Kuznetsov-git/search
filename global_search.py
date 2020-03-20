@@ -47,34 +47,39 @@ search_params = {
     "ll": ','.join(toponym_coodrinates.split(' ')),
     "type": "biz"
 }
+all_points = []
 response = requests.get(search_api_server, params=search_params)
-
+time = []
 json_response = response.json()
 
-# Получаем первую найденную организацию.
-organization = json_response["features"][0]
-# Название организации.
-org_name = organization["properties"]["CompanyMetaData"]["name"]
-# Адрес организации.
-org_address = organization["properties"]["CompanyMetaData"]["address"]
 
-org_time = organization["properties"]["CompanyMetaData"]["Hours"]['text']
+for i in range(10):
+    organization = json_response["features"][i]
+    try:
+        if organization["properties"]["CompanyMetaData"]["Hours"]['text'].split(' ')[0][:-1] == 'ежедневно':
+            time.append('pm2blm')
+        else:
+            time.append('pm2gnm')
+    except Exception:
+        time.append('pm2grm')
+    org_address = organization["properties"]["CompanyMetaData"]["address"]
 
-# Получаем координаты ответа.
-point = organization["geometry"]["coordinates"]
-org_point = "{0},{1}".format(point[0], point[1])
+    point = organization["geometry"]["coordinates"]
+    org_point = "{},{}".format(point[0], point[1])
+    all_points.append(org_point)
 
 map_params = {
     # позиционируем карту центром на наш исходный адрес
     "ll": ",".join([toponym_longitude, toponym_lattitude]),
-    "spn": ','.join(scale(org_address, toponym_to_find)),
+    "spn": f'{scale(org_address, toponym_to_find)},{scale(org_address, toponym_to_find)}',
     "l": "map",
     # добавим точку, чтобы указать найденную аптеку
-    "pt": "{0},pm2dgl".format(org_point)
+    "pt": "{},{}~{},{}~{},{}~{},{}~{},{}~{},{}~{},{}~{},{}~{},{}~{},{}".format(all_points[0], time[0], all_points[1], time[1],
+                                                                               all_points[2], time[2], all_points[3], time[3],
+                                                                               all_points[4], time[4], all_points[5], time[5],
+                                                                               all_points[6], time[6], all_points[7], time[7],
+                                                                               all_points[8], time[8], all_points[9], time[9])
 }
-
-print(f'Адрес:{org_address}, Название:{org_name}, Время работы:{org_time},'
-      f'расстояние от исходной точки {int(lonlat_distance(toponym_coodrinates, point) // 1000)} км.')
 
 map_api_server = "http://static-maps.yandex.ru/1.x/"
 
