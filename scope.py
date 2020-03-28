@@ -33,4 +33,4 @@ def scale(*name):
         if float(coords['lowerCorner'].split(' ')[1]) < y_low:
             y_low = float(coords['lowerCorner'].split(' ')[1])
 
-    return max(x_up - x_low, y_up - y_low)
+    return min(x_up - x_low, y_up - y_low)
